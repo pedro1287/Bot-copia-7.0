@@ -2296,7 +2296,131 @@ async def up_revistas_api(file,usid,msg,username):
 		print(str(ex))
 		await msg.edit("®️ Ocurrió un error en su Conexión")
 
+async def revgacetaestudiantil_api(file,usid,msg,username):
+	try:
+		zipssize=19*1024*1024
+		filename = file.split("/")[-1]
+		host = "https://revgacetaestudiantil.sld.cu/index.php/gme/"
+		filesize = Path(file).stat().st_size
+		print(21)
+		proxy = None #Configs[username]["gp"]
+		headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0'}
+		#login
+		msg = await msg.edit("🔴 Conectando ... 🔴")
+		connector = aiohttp.TCPConnector()
+		async with aiohttp.ClientSession(connector=connector) as session:
+			payload = payload = {}
+			payload["source"] = "/index.php/medisur/gme/profile"
+			payload["username"] = "pita"
+			payload["password"] = "Lianet123*#"
+			async with session.post(host+"login/signIn", data=payload) as e:
+				print(222)
+			#upload
+			if filesize-1048>zipssize:
+				parts = round(filesize / zipssize)
+				await msg.edit(f"📦 𝑪𝒐𝒎𝒑𝒓𝒊𝒎𝒊𝒆𝒏𝒅𝒐\n\n🏷 Total: {parts} partes\n")
+				files = sevenzip(file,volume=zipssize)
+				print(24)
+				links = []
+				for file in files:
+					try:
+						#editar
+						async with session.get(host+"author/submit") as resp:
+							print(1)
+						async with session.get(host+"author/submit/1") as resp:
+							print(2)
+						payload = {
+							"submissionChecklist": "1",
+							"sectionId": "465",
+							"locale": "es_ES",
+							"checklist[]": [
+								"0",
+								"1",
+								"2",
+								"3",
+								"4",
+								"5"
+							],
+							"copyrightNoticeAgree": "1",
+							"commentsToEditor": ""
+						}
+						async with session.post(host+"author/saveSubmit/1",data=payload) as resp:
+							print(3)
+							ids = str(resp.url).split("Id=")[1]
+						mime_type, _ = mimetypes.guess_type(file)
+						if not mime_type:
+							mime_type = "application/x-7z-compressed"
 
+						upload_data = {}
+						upload_data["articleId"] = ids
+						upload_data["uploadSubmissionFile"] = "Cargar"
+
+						post_file_url = host+"author/saveSubmit/2"
+						fi = Progress(file,lambda current,total,timestart,filename: uploadfile_progres(current,total,timestart,filename,msg))
+						query = {"submissionFile":fi,**upload_data}
+						async with session.post(post_file_url,data=query) as resp:
+							text = await resp.text()
+							url = str(text).split('"controls"><a href="')[1].split('">')[0]
+							await bot.send_message(username,url)
+							links.append(url)
+					except:
+						pass
+				await msg.edit(f"✅ Finalizado ✅ \n\n{file.split('/')[-1]}\n[ .txt ] ⤵️")
+				txtname = file.split('.')[0].replace(' ','_')+'.txt'
+				with open(txtname,"w") as t:
+					message = ""
+					for li in links:
+						message+=li+"\n"
+					t.write(message)
+					t.close()
+				await bot.send_document(usid,txtname,thumb="thumb.jpg")
+			else:
+				await msg.edit("💠 Subiendo 💠")
+				async with session.get(host+"author/submit") as resp:
+					print(1)
+				async with session.get(host+"author/submit/1") as resp:
+					print(2)
+				payload = {
+					"submissionChecklist": "1",
+					"sectionId": "465",
+					"locale": "es_ES",
+					"checklist[]": [
+						"0",
+						"1",
+						"2",
+						"3",
+						"4",
+						"5"
+					],
+					"copyrightNoticeAgree": "1",
+					"commentsToEditor": ""
+				}
+				async with session.post(host+"author/saveSubmit/1",data=payload) as resp:
+					print(3)
+					ids = str(resp.url).split("Id=")[1]
+				mime_type, _ = mimetypes.guess_type(file)
+				if not mime_type:
+					mime_type = "application/x-7z-compressed"
+
+				upload_data = {}
+				upload_data["articleId"] = ids
+				upload_data["uploadSubmissionFile"] = "Cargar"
+
+				post_file_url = host+"author/saveSubmit/2"
+				fi = Progress(file,lambda current,total,timestart,filename: uploadfile_progres(current,total,timestart,filename,msg))
+				query = {"submissionFile":fi,**upload_data}
+				async with session.post(post_file_url,data=query) as resp:
+					text = await resp.text()
+					url = str(text).split('"controls"><a href="')[1].split('">')[0]
+					await bot.send_message(username,url)
+					await msg.edit(f"✅ Finalizado ✅ \n\n{file.split('/')[-1]}\n[ .txt ] ⤵️")
+					txtname = file.split('.')[0].replace(' ','_')+'.txt'
+					with open(txtname,"w") as t:
+						t.write(url)
+						t.close()
+					await bot.send_document(usid,txtname,thumb="thumb.jpg")
+	except Exception as e:
+		print(str(e))
 async def uploadfileapi(file,usid,msg,username):
 	host = "https://educa.uho.edu.cu/"
 	proxy = Configs["gp"]
