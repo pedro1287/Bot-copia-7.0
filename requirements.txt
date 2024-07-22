@@ -25,7 +25,7 @@ googledrivedownloader==0.4
 h11==0.14.0
 idna==3.4
 inflate64==0.3.1
-install==3.12.3
+install==3.12.4
 
 mega==0.2.11
 mega.py==1.0.8
