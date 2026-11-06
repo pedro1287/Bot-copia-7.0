@@ -5,7 +5,7 @@ COPY . .
 
 RUN pip3 install -r requirements.txt
 
-RUN apt update; apt-get install -yy apache
+
 
 CMD ["bash","run.sh"]
 
